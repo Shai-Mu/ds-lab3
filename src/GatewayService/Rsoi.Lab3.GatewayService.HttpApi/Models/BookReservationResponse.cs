@@ -39,12 +39,26 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Models
         /// <value>Дата окончания бронирования</value>
         [DataMember(Name="tillDate")]
         public string TillDate { get; set; }
+        
+        /// <summary>
+        /// Идентификатор книги
+        /// </summary>
+        /// <value>Идентификатор книги</value>
+        [DataMember(Name = "bookUid")]
+        public Guid BookUid { get; set; }
 
         /// <summary>
         /// Gets or Sets Book
         /// </summary>
         [DataMember(Name="book")]
         public BookInfo? Book { get; set; }
+        
+        /// <summary>
+        /// Идентификатор библиотеки
+        /// </summary>
+        /// <value>Идентификатор библиотеки</value>
+        [DataMember(Name = "libraryUid")]
+        public Guid LibraryUid { get; set; }
 
         /// <summary>
         /// Gets or Sets Library
@@ -56,6 +70,8 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Models
             Status status,
             string startDate,
             string tillDate,
+            Guid bookUid,
+            Guid libraryUid,
             BookInfo? book,
             LibraryResponse? library)
         {
@@ -65,6 +81,8 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Models
             TillDate = tillDate;
             Book = book;
             Library = library;
+            BookUid = bookUid;
+            LibraryUid = libraryUid;
         }
     }
 }

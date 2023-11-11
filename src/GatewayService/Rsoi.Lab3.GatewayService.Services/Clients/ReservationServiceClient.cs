@@ -35,6 +35,10 @@ public class ReservationServiceClient : IDisposable
 
             return JsonConvert.DeserializeObject<List<Reservation>>(response.Content!);
         }
+        catch (InternalServiceException e)
+        {
+            throw;
+        }
         catch 
         {
             throw new InternalServiceException(request, ServiceName);
@@ -60,6 +64,10 @@ public class ReservationServiceClient : IDisposable
 
             return JsonConvert.DeserializeObject<Reservation>(response.Content!)!;
         }
+        catch (InternalServiceException e)
+        {
+            throw;
+        }
         catch
         {
             throw new InternalServiceException(request, ServiceName);
@@ -84,6 +92,10 @@ public class ReservationServiceClient : IDisposable
 
             return JsonConvert.DeserializeObject<CloseReservationResponse>(response.Content!)!;
         }
+        catch (InternalServiceException e)
+        {
+            throw;
+        }
         catch 
         {
             throw new InternalServiceException(request, ServiceName);
@@ -102,6 +114,10 @@ public class ReservationServiceClient : IDisposable
                 response.StatusCode is not HttpStatusCode.NotFound)
                 throw new InternalServiceException(request, ServiceName, (int)response.StatusCode,
                     response.Content ?? ""); 
+        }
+        catch (InternalServiceException e)
+        {
+            throw;
         }
         catch
         {

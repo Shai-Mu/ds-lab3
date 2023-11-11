@@ -33,17 +33,21 @@ public class RatingsController : ControllerBase
     }
 
     [HttpPatch]
-    [Route("ratings/{id}")]
-    public async Task<IActionResult> EditRatingForUser([FromRoute] Guid id, [FromQuery]int stars)
+    [Route("ratings/modify")]
+    public async Task<IActionResult> EditRatingForUser([FromQuery] string username, [FromQuery]int stars)
     {
-        int normalizedStars = stars switch
+        var rating = await _ratingRepository.FindRatingForUsernameAsync(username);
+
+        var newStarsValue = rating!.Stars + stars;
+        
+        int normalizedStars = newStarsValue switch
         {
             > 100 => 100,
             < 1 => 1,
-            _ => stars
+            _ => newStarsValue
         };
 
-        await _ratingRepository.EditRatingAsync(id, normalizedStars);
+        await _ratingRepository.EditRatingAsync(rating.Id, normalizedStars);
 
         return Ok();
     }

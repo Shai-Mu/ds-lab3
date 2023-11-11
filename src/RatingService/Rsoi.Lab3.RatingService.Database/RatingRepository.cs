@@ -44,4 +44,13 @@ public class RatingRepository : IRatingRepository
 
         await _ratingContext.SaveChangesAsync();
     }
+
+    public async Task<Core.Rating> GetRatingAsync(Guid id)
+    {
+        var rating = await _ratingContext.Ratings
+            .AsNoTracking()
+            .FirstAsync(r => r.Id == id);
+
+        return RatingConverter.Convert(rating);
+    }
 }

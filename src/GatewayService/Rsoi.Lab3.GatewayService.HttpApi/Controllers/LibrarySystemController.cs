@@ -7,6 +7,7 @@ using Rsoi.Lab3.GatewayService.HttpApi.Models.Enum;
 using Rsoi.Lab3.GatewayService.Services.Exceptions;
 using Rsoi.Lab3.GatewayService.HttpApi.Converters;
 using Rsoi.Lab3.GatewayService.HttpApi.Models;
+using Rsoi.Lab3.GatewayService.Services.BackgroundServices;
 using Rsoi.Lab3.GatewayService.Services.Clients;
 using Rsoi.Lab3.LibraryService.Dto.Models;
 using Rsoi.Lab3.ReservationService.Core;
@@ -23,14 +24,17 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Controllers
         private readonly LibraryServiceClient _libraryServiceClient;
         private readonly RatingServiceClient _ratingServiceClient;
         private readonly ReservationServiceClient _reservationServiceClient;
+        private readonly UndoneRequestsQueue _undoneRequestsQueue;
 
         public LibrarySystemController(LibraryServiceClient libraryServiceClient, 
             RatingServiceClient ratingServiceClient, 
-            ReservationServiceClient reservationServiceClient)
+            ReservationServiceClient reservationServiceClient, 
+            UndoneRequestsQueue undoneRequestsQueue)
         {
             _libraryServiceClient = libraryServiceClient;
             _ratingServiceClient = ratingServiceClient;
             _reservationServiceClient = reservationServiceClient;
+            _undoneRequestsQueue = undoneRequestsQueue;
         }
 
         /// <summary>
@@ -53,7 +57,7 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Controllers
             }
             catch (InternalServiceException e)
             {
-                return StatusCode(e.ErrorCode, new ErrorResponse($"{e.ServiceName}:{e.Description}"));
+                return StatusCode(e.ErrorCode ?? 500, new ErrorResponse($"{e.ServiceName}:{e.Description}"));
             }
             catch (Exception e)
             {
@@ -85,7 +89,7 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Controllers
             }
             catch (InternalServiceException e)
             {
-                return StatusCode(e.ErrorCode, new ErrorResponse($"{e.ServiceName}:{e.Description}"));
+                return StatusCode(e.ErrorCode ?? 500, new ErrorResponse($"{e.ServiceName}:{e.Description}"));
             }
             catch (Exception e)
             {
@@ -109,9 +113,13 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Controllers
                 var response = await _ratingServiceClient.GetRatingForUserAsync(xUserName);
                 return Ok(new UserRatingResponse(response?.Rating?.Stars ?? 0));
             }
+            catch (InternalServiceException e) when (e.ErrorCode is null)
+            {
+                return StatusCode(503, new {Message = "Bonus Service unavailable"});
+            }
             catch (InternalServiceException e)
             {
-                return StatusCode(e.ErrorCode, new ErrorResponse($"{e.ServiceName}:{e.Description}"));
+                return StatusCode(e.ErrorCode!.Value, new ErrorResponse($"{e.ServiceName}:{e.Description}"));
             }
             catch (Exception e)
             {
@@ -150,14 +158,14 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Controllers
                         // ignored
                     }
 
-                    reservations.Add(BookReservationConverter.Convert(reservation, books, library));
+                    reservations.Add(BookReservationConverter.Convert(reservation, books, library, reservation.BooksId, reservation.LibraryId));
                 }
                 
                 return Ok(reservations);
             }
             catch (InternalServiceException e)
             {
-                return StatusCode(e.ErrorCode, new ErrorResponse($"{e.ServiceName}:{e.Description}"));
+                return StatusCode(e.ErrorCode ?? 500, new ErrorResponse($"{e.ServiceName}:{e.Description}"));
             }
             catch (Exception e)
             {
@@ -182,6 +190,7 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Controllers
             try
             {
                 var reservations = await _reservationServiceClient.GetReservationsForUserAsync(xUserName);
+                
                 var rating = await _ratingServiceClient.GetRatingForUserAsync(xUserName);
 
                 if (rating!.Rating is null || reservations!.Count >= rating.Rating.Stars)
@@ -204,19 +213,37 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Controllers
                 catch
                 {
                     await _reservationServiceClient.DeleteReservationAsync(reservation.Id);
+                    throw;
+                }
+
+                Books? book = null;
+                Library? library = null;
+                
+                try
+                {
+                    book = await _libraryServiceClient.GetBookAsync(takeBookRequest.BookUid);
+                    library = await _libraryServiceClient.GetLibraryAsync(takeBookRequest.LibraryUid);
+                }
+                catch (InternalServiceException e)
+                {
+                    if (e.ErrorCode is not null)
+                        throw;
                 }
                 
-
-                var book = await _libraryServiceClient.GetBookAsync(takeBookRequest.BookUid);
-                var library = await _libraryServiceClient.GetLibraryAsync(takeBookRequest.LibraryUid);
 
                 return Ok(new TakeBookResponse(reservation.Id, 
                     ReservationStatusConverter.Convert(reservation.ReservationStatus), 
                     reservation.StartDate.ToString("yyyy-MM-dd"), 
                     reservation.TillDate.ToString("yyyy-MM-dd"),
+                    takeBookRequest.BookUid,
+                    takeBookRequest.LibraryUid,
                     LibraryBookConverter.Convert(book),
                     LibraryConverter.Convert(library),
                     new UserRatingResponse(rating.Rating.Stars)));
+            }
+            catch (InternalServiceException e) when(e.ErrorCode is null)
+            {
+                return StatusCode(503, new {Message = "Bonus Service unavailable"});
             }
             catch (InternalServiceException e) when (e.ErrorCode == 404)
             {
@@ -227,7 +254,7 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Controllers
             }
             catch (InternalServiceException e)
             {
-                return StatusCode(e.ErrorCode, new ErrorResponse($"{e.ServiceName}:{e.Description}"));
+                return StatusCode(e.ErrorCode ?? 500, new ErrorResponse($"{e.ServiceName}:{e.Description}"));
             }
             catch (Exception e)
             {
@@ -258,37 +285,32 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Controllers
                 {
                     await _libraryServiceClient.ReturnBookAsync(reservation.Reservation.BooksId, reservation.Reservation.LibraryId, (int)BookConditionConverter.Convert(returnBookRequest.Condition));
                 }
-                catch (Exception e)
+                catch (InternalServiceException e) when (e.ErrorCode is null)
                 {
-                    
+                    _undoneRequestsQueue.AddTaskToQueue(new UndoneRequest(e.Request, _libraryServiceClient.ServiceAddress));
                 }
+                
+                var book = await _libraryServiceClient.GetBookAsync(reservation.Reservation.BooksId);
+                
+                int ratingModifier = 0;
+
+                if (book?.Condition != BookConditionConverter.Convert(returnBookRequest.Condition))
+                    ratingModifier -= 10;
+
+                if (reservation.Reservation.ReservationStatus is ReservationStatus.Expired)
+                    ratingModifier -= 10;
+
+                if (ratingModifier == 0)
+                    ratingModifier = 1;
 
                 try
                 {
-                    var rating = await _ratingServiceClient.GetRatingForUserAsync(xUserName);
-
-                    var book = await _libraryServiceClient.GetBookAsync(reservation.Reservation.BooksId);
-
-                    int ratingModifier = 0;
-
-                    if (book.Condition != BookConditionConverter.Convert(returnBookRequest.Condition))
-                        ratingModifier -= 10;
-
-                    if (reservation.Reservation.ReservationStatus is ReservationStatus.Expired)
-                        ratingModifier -= 10;
-
-                    if (ratingModifier == 0)
-                        ratingModifier = 1;
-
-                    int finalRating = rating!.Rating!.Stars + ratingModifier;
-
-                    await _ratingServiceClient.EditRatingForUserAsync(rating.Rating.Id, finalRating);
+                    await _ratingServiceClient.ModifyRatingForUserAsync(xUserName, ratingModifier);
                 }
-                catch (Exception e)
+                catch (InternalServiceException e) when (e.ErrorCode is null)
                 {
-                    
+                    _undoneRequestsQueue.AddTaskToQueue(new UndoneRequest(e.Request, _ratingServiceClient.ServiceAddress));
                 }
-                
 
                 return NoContent();
             }
@@ -298,7 +320,7 @@ namespace Rsoi.Lab3.GatewayService.HttpApi.Controllers
             }
             catch (InternalServiceException e)
             {
-                return StatusCode(e.ErrorCode, new ErrorResponse($"{e.ServiceName}:{e.Description}"));
+                return StatusCode(e.ErrorCode ?? 500, new ErrorResponse($"{e.ServiceName}:{e.Description}"));
             }
             catch (Exception e)
             {

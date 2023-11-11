@@ -1,4 +1,5 @@
 ﻿using Microsoft.OpenApi.Models;
+using Rsoi.Lab3.GatewayService.Services.BackgroundServices;
 using Rsoi.Lab3.GatewayService.Services.Clients;
 using Rsoi.Lab3.GatewayService.Services.Confiugration;
 
@@ -33,7 +34,8 @@ public class Startup
         services.AddSingleton<LibraryServiceClient>();
         services.AddSingleton<RatingServiceClient>();
         services.AddSingleton<ReservationServiceClient>();
-
+        services.AddSingleton<UndoneRequestsQueue>();
+        services.AddHostedService<RequestRetryBackgroundService>();
 
     }
     

@@ -12,13 +12,15 @@ public class RatingServiceClient : IDisposable
 {
     private readonly RestClient _restClient;
     private static readonly string _serviceName = "Rating service";
-    public readonly Uri _serviceAddress;
+    public readonly Uri ServiceAddress;
+    private readonly ServiceState _serviceState;
 
     public RatingServiceClient(IOptions<ServiceConfiguration> serviceConfiguration)
     {
-        var options = new RestClientOptions(serviceConfiguration.Value.RatingServiceAddress!);
+        _serviceState = new ServiceState();
+        ServiceAddress = serviceConfiguration.Value.RatingServiceAddress!;
+        var options = new RestClientOptions(ServiceAddress);
         _restClient = new RestClient(options);
-        _serviceAddress = serviceConfiguration.Value.RatingServiceAddress!;
     }
     
     public async Task<RatingResponse?> GetRatingForUserAsync(string username)
@@ -37,17 +39,23 @@ public class RatingServiceClient : IDisposable
 
             return JsonConvert.DeserializeObject<RatingResponse>(response!.Content!);
         }
+        catch (InternalServiceException e)
+        {
+            throw;
+        }
         catch
         {
+            _serviceState.RecordServiceUnable();
+
             throw new InternalServiceException(request, _serviceName);
         }
         
     }
 
-    public async Task EditRatingForUserAsync(Guid ratingId, int ratingValue)
+    public async Task ModifyRatingForUserAsync(string username, int ratingValue)
     {
-        var query = $"?stars={ratingValue}";
-        var request = new RestRequest($"ratings/{ratingId}" + query, Method.Patch);
+        var query = $"?stars={ratingValue}&username={username}";
+        var request = new RestRequest($"ratings/modify" + query, Method.Patch);
 
         try
         {
@@ -58,8 +66,14 @@ public class RatingServiceClient : IDisposable
                 throw new InternalServiceException(request, _serviceName, (int)response.StatusCode,
                     response.Content ?? "");
         }
+        catch (InternalServiceException e)
+        {
+            throw;
+        }
         catch
         {
+            _serviceState.RecordServiceUnable();
+
             throw new InternalServiceException(request, _serviceName);
         }
        

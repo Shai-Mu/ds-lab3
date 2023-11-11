@@ -7,4 +7,6 @@ public interface IRatingRepository
     public Task<Rating?> FindRatingForUsernameAsync(string username);
 
     public Task EditRatingAsync(Guid id, int stars);
+
+    public Task<Rating> GetRatingAsync(Guid id);
 }
