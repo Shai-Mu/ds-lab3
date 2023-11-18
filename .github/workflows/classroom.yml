@@ -67,6 +67,13 @@ jobs:
           file: ./reservation-service.Dockerfile
           tags: shaimu/ds_lab:lab3-reservation-service
 
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+
       - name: Stop app
         continue-on-error: true
         uses: appleboy/ssh-action@v1.0.0
