@@ -4,6 +4,6 @@ WORKDIR /app
 
 EXPOSE 80 
 
-COPY Lab2Publish/LibraryService .
+COPY Lab3Publish/LibraryService .
 
 ENTRYPOINT ["dotnet", "Rsoi.Lab2.LibraryService.HttpApi.dll"]

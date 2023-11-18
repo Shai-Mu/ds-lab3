@@ -4,6 +4,6 @@ WORKDIR /app
 
 EXPOSE 80 
 
-COPY Lab2Publish/RatingService .
+COPY Lab3Publish/RatingService .
 
 ENTRYPOINT ["dotnet", "Rsoi.Lab2.RatingService.HttpApi.dll"]

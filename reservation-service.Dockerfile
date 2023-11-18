@@ -4,6 +4,6 @@ WORKDIR /app
 
 EXPOSE 80 
 
-COPY Lab2Publish/ReservationService .
+COPY Lab3Publish/ReservationService .
 
 ENTRYPOINT ["dotnet", "Rsoi.Lab2.ReservationService.HttpApi.dll"]

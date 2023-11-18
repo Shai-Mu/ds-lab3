@@ -1,20 +1,61 @@
 version: "3"
 services:
-  postgres:
-    image: library/postgres:13
-    container_name: postgres
+  library-postgres:
+    image: postgres:latest
+    container_name: library-postgres
     restart: on-failure
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: "postgres"
       POSTGRES_DB: postgres
     volumes:
-      - db-data:/var/lib/postgresql/data
-      - ./postgres/:/docker-entrypoint-initdb.d/
+      - postgres-data-lab3:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
-# TODO добавить сервисы
+  gateway-service:
+    image: shaimu/ds_lab:lab3-gateway-service
+    container_name: gateway-service
+    depends_on:
+      - library-postgres
+    restart: always
+    volumes:
+      - ~/lab2/configs/gateway-service/appsettings.json:/app/appsettings.json
+    ports:
+      - "8080:80"
+
+  library-service:
+    image: shaimu/ds_lab:lab3-library-service
+    container_name: library-service
+    depends_on:
+      - library-postgres
+    restart: always
+    volumes:
+      - ~/lab2/configs/library-service/appsettings.json:/app/appsettings.json
+    ports:
+      - "8060:80"
+
+  rating-service:
+    image: shaimu/ds_lab:lab3-rating-service
+    container_name: rating-service
+    depends_on:
+      - library-postgres
+    restart: always
+    volumes:
+      - ~/lab2/configs/rating-service/appsettings.json:/app/appsettings.json
+    ports:
+      - "8050:80"
+
+  reservation-service:
+    image: shaimu/ds_lab:lab3-reservation-service
+    container_name: reservation-service
+    depends_on:
+      - library-postgres
+    restart: always
+    volumes:
+      - ~/lab2/configs/reservation-service/appsettings.json:/app/appsettings.json
+    ports:
+      - "8070:80"
 
 volumes:
-  db-data:
+  postgres-data-lab3:
