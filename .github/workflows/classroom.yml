@@ -118,8 +118,8 @@ jobs:
           VARIANT: v4
           SERVICE_NAME: rating-service
           PORT_NUMBER: 8050
-          USERNAME: ${{ secrets.HOST_USERNAME }}
-          PASSWORD: ${{ secrets.HOST_ADDRESS }}
+          DEPLOY_USERNAME: ${{ secrets.HOST_USERNAME }}
+          DEPLOY_ADDRESS: ${{ secrets.HOST_ADDRESS }}
 
       - uses: education/autograding@v1
         id: autograder

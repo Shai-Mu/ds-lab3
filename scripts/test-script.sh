@@ -5,8 +5,8 @@ set -e
 variant=${1:-${VARIANT}}
 service=${2:-${SERVICE_NAME}}
 port=${3:-${PORT_NUMBER}}
-username=${4:-${USERNAME}}
-hostname=${5:-${HOSTNAME}}
+deploy_username=${4:-${DEPLOY_USERNAME}}
+deploy_hostname=${5:-${DEPLOY_ADDRESS}}
 
 path=$(dirname "$0")
 
@@ -38,7 +38,7 @@ step() {
 
   printf "=== Step %d: %s %s ===\n" "$step" "$operation" "$service"
 
-  ssh $username@$hostname -o StrictHostKeyChecking=no "docker-compose -f lab3/docker-compose.yml \"$operation\" \"$service\""
+  ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $deploy_username@$deploy_hostname "docker-compose -f lab3/docker-compose.yml \"$operation\" \"$service\""
   if [[ "$operation" == "start" ]]; then
     "$path"/wait-for.sh -t 120 "http://localhost:$port/manage/health" -- echo "Host localhost:$port is active"
   fi
