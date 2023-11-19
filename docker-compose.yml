@@ -1,8 +1,8 @@
 version: "3"
 services:
-  library-postgres:
+  library-postgres-lab3:
     image: postgres:latest
-    container_name: library-postgres
+    container_name: library-postgres-lab3
     restart: on-failure
     environment:
       POSTGRES_USER: postgres
@@ -17,7 +17,7 @@ services:
     image: shaimu/ds_lab:lab3-gateway-service
     container_name: gateway-service
     depends_on:
-      - library-postgres
+      - library-postgres-lab3
     restart: always
     volumes:
       - ~/lab2/configs/gateway-service/appsettings.json:/app/appsettings.json
@@ -28,7 +28,7 @@ services:
     image: shaimu/ds_lab:lab3-library-service
     container_name: library-service
     depends_on:
-      - library-postgres
+      - library-postgres-lab3
     restart: always
     volumes:
       - ~/lab2/configs/library-service/appsettings.json:/app/appsettings.json
@@ -39,7 +39,7 @@ services:
     image: shaimu/ds_lab:lab3-rating-service
     container_name: rating-service
     depends_on:
-      - library-postgres
+      - library-postgres-lab3
     restart: always
     volumes:
       - ~/lab2/configs/rating-service/appsettings.json:/app/appsettings.json
@@ -50,7 +50,7 @@ services:
     image: shaimu/ds_lab:lab3-reservation-service
     container_name: reservation-service
     depends_on:
-      - library-postgres
+      - library-postgres-lab3
     restart: always
     volumes:
       - ~/lab2/configs/reservation-service/appsettings.json:/app/appsettings.json
