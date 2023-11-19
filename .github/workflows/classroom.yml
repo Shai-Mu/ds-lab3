@@ -24,12 +24,11 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 
-      - name: Run API Tests
-        timeout-minutes: 5
+      - name: Run SSH test
         run: ./scripts/test-ssh-script.sh
         env:
           USERNAME: ${{ secrets.HOST_USERNAME }}
-          PASSWORD: ${{ secrets.HOST_ADDRESS }}
+          ADDRESS: ${{ secrets.HOST_ADDRESS }}
 
       - name: Build Gateway service
         run: dotnet publish src/GatewayService/Rsoi.Lab3.GatewayService.HttpApi/Rsoi.Lab3.GatewayService.HttpApi.csproj -c Release -o Lab3Publish/GatewayService
