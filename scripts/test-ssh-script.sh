@@ -3,4 +3,4 @@ hostname=${2:-${HOSTNAME}}
 
 echo "Testing ssh connection"
 
-ssh $username@$hostname -o StrictHostKeyChecking=no "ls"
+ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $username@$hostname "ls"
