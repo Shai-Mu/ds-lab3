@@ -113,7 +113,7 @@ jobs:
           SERVICE_NAME: rating-service
           PORT_NUMBER: 8050
           USERNAME: ${{ secrets.HOST_USERNAME }}
-          PASSWORD: ${{ sectets.HOST_ADDRESS }}
+          PASSWORD: ${{ secrets.HOST_ADDRESS }}
 
       - uses: education/autograding@v1
         id: autograder
