@@ -27,8 +27,8 @@ jobs:
       - name: Run SSH test
         run: ./scripts/test-ssh-script.sh
         env:
-          USERNAME: ${{ secrets.HOST_USERNAME }}
-          ADDRESS: ${{ secrets.HOST_ADDRESS }}
+          DEPLOY_USERNAME: ${{ secrets.HOST_USERNAME }}
+          DEPLOY_ADDRESS: ${{ secrets.HOST_ADDRESS }}
 
       - name: Build Gateway service
         run: dotnet publish src/GatewayService/Rsoi.Lab3.GatewayService.HttpApi/Rsoi.Lab3.GatewayService.HttpApi.csproj -c Release -o Lab3Publish/GatewayService
