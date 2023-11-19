@@ -73,6 +73,7 @@ jobs:
           echo "${{ secrets.SSH_DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+          ssh -vT ${{ secrets.HOST_USERNAME }}@{{ secrets.HOST_ADDRESS }}
 
       - name: Stop app
         continue-on-error: true
