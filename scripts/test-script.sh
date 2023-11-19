@@ -38,7 +38,7 @@ step() {
 
   printf "=== Step %d: %s %s ===\n" "$step" "$operation" "$service"
 
-  ssh -o StrictHostKeyChecking=no -l $username $hostname "docker-compose -f lab3/docker-compose.yml \"$operation\" \"$service\""
+  ssh $username@$hostname -o StrictHostKeyChecking=no "docker-compose -f lab3/docker-compose.yml \"$operation\" \"$service\""
   if [[ "$operation" == "start" ]]; then
     "$path"/wait-for.sh -t 120 "http://localhost:$port/manage/health" -- echo "Host localhost:$port is active"
   fi
