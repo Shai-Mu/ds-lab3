@@ -39,8 +39,10 @@ step() {
   printf "=== Step %d: %s %s ===\n" "$step" "$operation" "$service"
 
   ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $deploy_username@$deploy_hostname "docker-compose -f lab3/docker-compose.yml \"$operation\" \"$service\""
+  echo "Remote command executed successfully"
   if [[ "$operation" == "start" ]]; then
-    "$path"/wait-for.sh -t 120 "http://localhost:$port/manage/health" -- echo "Host localhost:$port is active"
+      echo "Waiting for host success healthcheck."
+    "$path"/wait-for.sh -t 120 "http://$deploy_hostname:$port/manage/health" -- echo "Host localhost:$port is active"
   fi
 
   newman run \
