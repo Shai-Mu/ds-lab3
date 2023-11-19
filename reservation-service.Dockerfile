@@ -6,4 +6,4 @@ EXPOSE 80
 
 COPY Lab3Publish/ReservationService .
 
-ENTRYPOINT ["dotnet", "Rsoi.Lab2.ReservationService.HttpApi.dll"]
+ENTRYPOINT ["dotnet", "Rsoi.Lab3.ReservationService.HttpApi.dll"]

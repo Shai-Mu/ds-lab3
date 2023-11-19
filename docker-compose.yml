@@ -20,7 +20,7 @@ services:
       - library-postgres-lab3
     restart: always
     volumes:
-      - ~/lab2/configs/gateway-service/appsettings.json:/app/appsettings.json
+      - ~/lab3/configs/gateway-service/appsettings.json:/app/appsettings.json
     ports:
       - "8080:80"
 
@@ -31,7 +31,7 @@ services:
       - library-postgres-lab3
     restart: always
     volumes:
-      - ~/lab2/configs/library-service/appsettings.json:/app/appsettings.json
+      - ~/lab3/configs/library-service/appsettings.json:/app/appsettings.json
     ports:
       - "8060:80"
 
@@ -42,7 +42,7 @@ services:
       - library-postgres-lab3
     restart: always
     volumes:
-      - ~/lab2/configs/rating-service/appsettings.json:/app/appsettings.json
+      - ~/lab3/configs/rating-service/appsettings.json:/app/appsettings.json
     ports:
       - "8050:80"
 
@@ -53,7 +53,7 @@ services:
       - library-postgres-lab3
     restart: always
     volumes:
-      - ~/lab2/configs/reservation-service/appsettings.json:/app/appsettings.json
+      - ~/lab3/configs/reservation-service/appsettings.json:/app/appsettings.json
     ports:
       - "8070:80"
 

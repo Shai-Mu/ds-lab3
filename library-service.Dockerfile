@@ -6,4 +6,4 @@ EXPOSE 80
 
 COPY Lab3Publish/LibraryService .
 
-ENTRYPOINT ["dotnet", "Rsoi.Lab2.LibraryService.HttpApi.dll"]
+ENTRYPOINT ["dotnet", "Rsoi.Lab3.LibraryService.HttpApi.dll"]

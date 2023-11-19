@@ -6,4 +6,4 @@ EXPOSE 80
 
 COPY Lab3Publish/RatingService .
 
-ENTRYPOINT ["dotnet", "Rsoi.Lab2.RatingService.HttpApi.dll"]
+ENTRYPOINT ["dotnet", "Rsoi.Lab3.RatingService.HttpApi.dll"]

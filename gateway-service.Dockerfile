@@ -6,4 +6,4 @@ EXPOSE 80
 
 COPY Lab3Publish/GatewayService .
 
-ENTRYPOINT ["dotnet", "Rsoi.Lab2.GatewayService.HttpApi.dll"]
+ENTRYPOINT ["dotnet", "Rsoi.Lab3.GatewayService.HttpApi.dll"]
